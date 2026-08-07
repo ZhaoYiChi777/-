@@ -41,6 +41,16 @@ public class KGController {
         return kgService.getInsights();
     }
 
+    @GetMapping("/build-jobs/latest")
+    public Map<String, Object> getLatestBuildJob() {
+        return kgService.getLatestBuildJob();
+    }
+
+    @GetMapping("/build-jobs/{jobId}")
+    public Map<String, Object> getBuildJob(@PathVariable Long jobId) {
+        return kgService.getBuildJob(jobId);
+    }
+
     @PostMapping("/build")
     public Map<String, Object> buildGraph() {
         return kgService.buildGraph();

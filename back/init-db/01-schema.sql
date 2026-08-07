@@ -129,6 +129,87 @@ CREATE TABLE `kg_nodes` (
   KEY `idx_kg_nodes_project_id` (`project_id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=842 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
+DROP TABLE IF EXISTS `kg_build_events`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `kg_build_events` (
+  `id` bigint NOT NULL AUTO_INCREMENT,
+  `job_id` bigint NOT NULL,
+  `project_id` bigint DEFAULT NULL,
+  `event_type` varchar(100) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `message` text COLLATE utf8mb4_unicode_ci,
+  `payload_json` longtext COLLATE utf8mb4_unicode_ci,
+  `created_at` varchar(50) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `idx_kg_build_events_job_id` (`job_id`),
+  KEY `idx_kg_build_events_project_id` (`project_id`),
+  KEY `idx_kg_build_events_type` (`event_type`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+DROP TABLE IF EXISTS `kg_build_jobs`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `kg_build_jobs` (
+  `id` bigint NOT NULL AUTO_INCREMENT,
+  `project_id` bigint DEFAULT NULL,
+  `status` varchar(50) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `build_mode` varchar(50) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `graph_version` bigint DEFAULT NULL,
+  `total_entries` int DEFAULT '0',
+  `processed_entries` int DEFAULT '0',
+  `node_count` int DEFAULT '0',
+  `edge_count` int DEFAULT '0',
+  `error_message` text COLLATE utf8mb4_unicode_ci,
+  `started_at` varchar(50) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `finished_at` varchar(50) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `idx_kg_build_jobs_project_id` (`project_id`),
+  KEY `idx_kg_build_jobs_status` (`status`),
+  KEY `idx_kg_build_jobs_graph_version` (`graph_version`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+DROP TABLE IF EXISTS `kg_entry_build_states`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `kg_entry_build_states` (
+  `id` bigint NOT NULL AUTO_INCREMENT,
+  `project_id` bigint NOT NULL,
+  `entry_id` bigint NOT NULL,
+  `entry_hash` varchar(128) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `graph_version` bigint DEFAULT NULL,
+  `node_id` bigint DEFAULT NULL,
+  `status` varchar(50) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `last_built_at` varchar(50) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uk_kg_entry_build_state_project_entry` (`project_id`,`entry_id`),
+  KEY `idx_kg_entry_build_states_project_id` (`project_id`),
+  KEY `idx_kg_entry_build_states_status` (`status`),
+  KEY `idx_kg_entry_build_states_graph_version` (`graph_version`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+DROP TABLE IF EXISTS `kg_relation_candidates`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `kg_relation_candidates` (
+  `id` bigint NOT NULL AUTO_INCREMENT,
+  `project_id` bigint NOT NULL,
+  `source_entry_id` bigint DEFAULT NULL,
+  `target_entry_id` bigint DEFAULT NULL,
+  `relation_type` varchar(100) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `confidence` double DEFAULT '0',
+  `evidence` text COLLATE utf8mb4_unicode_ci,
+  `reason` text COLLATE utf8mb4_unicode_ci,
+  `extractor` varchar(100) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `graph_version` bigint DEFAULT NULL,
+  `status` varchar(50) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `created_at` varchar(50) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `idx_kg_relation_candidates_project_id` (`project_id`),
+  KEY `idx_kg_relation_candidates_type` (`relation_type`),
+  KEY `idx_kg_relation_candidates_status` (`status`),
+  KEY `idx_kg_relation_candidates_graph_version` (`graph_version`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
 DROP TABLE IF EXISTS `knowledge_entries`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
@@ -275,4 +356,3 @@ CREATE TABLE `settings` (
 /*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
-

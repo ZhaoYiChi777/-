@@ -213,6 +213,71 @@ CREATE TABLE IF NOT EXISTS kg_edges (
     INDEX idx_kg_edges_target_id (target_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+CREATE TABLE IF NOT EXISTS kg_build_jobs (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    project_id BIGINT,
+    status VARCHAR(50) NOT NULL,
+    build_mode VARCHAR(50) NOT NULL,
+    graph_version BIGINT,
+    total_entries INT DEFAULT 0,
+    processed_entries INT DEFAULT 0,
+    node_count INT DEFAULT 0,
+    edge_count INT DEFAULT 0,
+    error_message TEXT,
+    started_at VARCHAR(50),
+    finished_at VARCHAR(50),
+    INDEX idx_kg_build_jobs_project_id (project_id),
+    INDEX idx_kg_build_jobs_status (status),
+    INDEX idx_kg_build_jobs_graph_version (graph_version)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS kg_entry_build_states (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    project_id BIGINT NOT NULL,
+    entry_id BIGINT NOT NULL,
+    entry_hash VARCHAR(128) NOT NULL,
+    graph_version BIGINT,
+    node_id BIGINT,
+    status VARCHAR(50) NOT NULL,
+    last_built_at VARCHAR(50),
+    UNIQUE KEY uk_kg_entry_build_state_project_entry (project_id, entry_id),
+    INDEX idx_kg_entry_build_states_project_id (project_id),
+    INDEX idx_kg_entry_build_states_status (status),
+    INDEX idx_kg_entry_build_states_graph_version (graph_version)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS kg_relation_candidates (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    project_id BIGINT NOT NULL,
+    source_entry_id BIGINT,
+    target_entry_id BIGINT,
+    relation_type VARCHAR(100) NOT NULL,
+    confidence DOUBLE DEFAULT 0,
+    evidence TEXT,
+    reason TEXT,
+    extractor VARCHAR(100),
+    graph_version BIGINT,
+    status VARCHAR(50) NOT NULL,
+    created_at VARCHAR(50),
+    INDEX idx_kg_relation_candidates_project_id (project_id),
+    INDEX idx_kg_relation_candidates_type (relation_type),
+    INDEX idx_kg_relation_candidates_status (status),
+    INDEX idx_kg_relation_candidates_graph_version (graph_version)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS kg_build_events (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    job_id BIGINT NOT NULL,
+    project_id BIGINT,
+    event_type VARCHAR(100) NOT NULL,
+    message TEXT,
+    payload_json LONGTEXT,
+    created_at VARCHAR(50),
+    INDEX idx_kg_build_events_job_id (job_id),
+    INDEX idx_kg_build_events_project_id (project_id),
+    INDEX idx_kg_build_events_type (event_type)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 -- 13. 系统设置表
 CREATE TABLE IF NOT EXISTS settings (
     setting_key VARCHAR(255) PRIMARY KEY,

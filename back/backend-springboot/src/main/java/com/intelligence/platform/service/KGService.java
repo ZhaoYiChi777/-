@@ -5,7 +5,13 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.intelligence.platform.common.PageResult;
 import com.intelligence.platform.entity.KGEdge;
 import com.intelligence.platform.entity.KGNode;
+import com.intelligence.platform.entity.KGBuildEvent;
+import com.intelligence.platform.entity.KGBuildJob;
+import com.intelligence.platform.entity.KGEntryBuildState;
 import com.intelligence.platform.entity.KnowledgeEntry;
+import com.intelligence.platform.mapper.KGBuildEventMapper;
+import com.intelligence.platform.mapper.KGBuildJobMapper;
+import com.intelligence.platform.mapper.KGEntryBuildStateMapper;
 import com.intelligence.platform.mapper.KGEdgeMapper;
 import com.intelligence.platform.mapper.KGNodeMapper;
 import com.intelligence.platform.mapper.KnowledgeEntryMapper;
@@ -13,6 +19,11 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -24,6 +35,7 @@ public class KGService {
 
     private static final Logger log = LoggerFactory.getLogger(KGService.class);
     private static final int SOURCE_OVERLAP_MAX_FORWARD_NEIGHBORS = 2;
+    private static final DateTimeFormatter BUILD_TIME_FORMAT = DateTimeFormatter.ISO_LOCAL_DATE_TIME;
 
     @Autowired
     private com.intelligence.platform.client.KGComputeClient kgComputeClient;
@@ -34,6 +46,12 @@ public class KGService {
     private KGEdgeMapper kgEdgeMapper;
     @Autowired
     private KnowledgeEntryMapper knowledgeEntryMapper;
+    @Autowired
+    private KGBuildJobMapper kgBuildJobMapper;
+    @Autowired
+    private KGEntryBuildStateMapper kgEntryBuildStateMapper;
+    @Autowired
+    private KGBuildEventMapper kgBuildEventMapper;
     @Autowired
     private LlmService llmService;
     @Autowired
@@ -57,6 +75,32 @@ public class KGService {
         LambdaQueryWrapper<KGEdge> w = new LambdaQueryWrapper<>();
         w.eq(KGEdge::getProjectId, pid);
         return kgEdgeMapper.selectList(w);
+    }
+
+    public Map<String, Object> getLatestBuildJob() {
+        Long pid = projectContext.getCurrentProjectId();
+        if (pid == null) {
+            return Map.of("found", false, "message", "Project ID is required.");
+        }
+
+        KGBuildJob job = kgBuildJobMapper.selectOne(new LambdaQueryWrapper<KGBuildJob>()
+                .eq(KGBuildJob::getProjectId, pid)
+                .orderByDesc(KGBuildJob::getId)
+                .last("LIMIT 1"));
+        return job == null ? Map.of("found", false) : buildJobDetails(job);
+    }
+
+    public Map<String, Object> getBuildJob(Long jobId) {
+        Long pid = projectContext.getCurrentProjectId();
+        if (pid == null) {
+            return Map.of("found", false, "message", "Project ID is required.");
+        }
+
+        KGBuildJob job = kgBuildJobMapper.selectOne(new LambdaQueryWrapper<KGBuildJob>()
+                .eq(KGBuildJob::getId, jobId)
+                .eq(KGBuildJob::getProjectId, pid)
+                .last("LIMIT 1"));
+        return job == null ? Map.of("found", false, "jobId", jobId) : buildJobDetails(job);
     }
 
     // ==================== 节点分页查询 ====================
@@ -135,7 +179,8 @@ public class KGService {
 
         // 如果节点为空，尝试自动从知识词条构建
         if (nodes.isEmpty()) {
-            nodes = autoBuildGraph();
+            buildGraph();
+            nodes = getProjectNodes();
             edges = getProjectEdges();
         }
 
@@ -284,14 +329,207 @@ public class KGService {
     // ==================== 图谱构建 ====================
 
     public Map<String, Object> buildGraph() {
-        autoBuildGraph();
+        Long projectId = projectContext.getCurrentProjectId();
+        if (projectId == null) {
+            return Map.of("status", "failed", "message", "Project ID is required.");
+        }
+
+        KGBuildJob job = createBuildJob(projectId, "full");
+        try {
+            autoBuildGraph(job);
         List<KGNode> nodes = getProjectNodes();
         List<KGEdge> edges = getProjectEdges();
         return Map.of("message", "图谱构建完成",
-                "node_count", nodes.size(), "edge_count", edges.size());
+                "node_count", nodes.size(), "edge_count", edges.size(),
+                "job_id", job.getId(), "status", completeBuildJob(job, nodes.size(), edges.size()));
+        } catch (Exception e) {
+            failBuildJob(job, e);
+            log.error("Knowledge graph build failed for project {} and job {}", projectId, job.getId(), e);
+            return Map.of(
+                    "job_id", job.getId(),
+                    "status", job.getStatus(),
+                    "message", "Knowledge graph build failed."
+            );
+        }
     }
 
     // ==================== 私有辅助方法 ====================
+
+    private KGBuildJob createBuildJob(Long projectId, String buildMode) {
+        KGBuildJob job = new KGBuildJob();
+        job.setProjectId(projectId);
+        job.setStatus("running");
+        job.setBuildMode(buildMode);
+        job.setGraphVersion(System.currentTimeMillis());
+        job.setTotalEntries(0);
+        job.setProcessedEntries(0);
+        job.setNodeCount(0);
+        job.setEdgeCount(0);
+        job.setStartedAt(now());
+        kgBuildJobMapper.insert(job);
+        recordBuildEvent(job, "started", "Knowledge graph build started.",
+                Map.of("buildMode", buildMode, "graphVersion", job.getGraphVersion()));
+        return job;
+    }
+
+    private String completeBuildJob(KGBuildJob job, int nodeCount, int edgeCount) {
+        job.setStatus("succeeded");
+        job.setNodeCount(nodeCount);
+        job.setEdgeCount(edgeCount);
+        job.setProcessedEntries(job.getTotalEntries());
+        job.setFinishedAt(now());
+        kgBuildJobMapper.updateById(job);
+        recordBuildEvent(job, "completed", "Knowledge graph build completed.",
+                Map.of("nodeCount", nodeCount, "edgeCount", edgeCount));
+        return job.getStatus();
+    }
+
+    private void failBuildJob(KGBuildJob job, Exception error) {
+        String message = error.getMessage() == null ? error.getClass().getSimpleName() : error.getMessage();
+        job.setStatus("failed");
+        job.setErrorMessage(message);
+        job.setFinishedAt(now());
+        kgBuildJobMapper.updateById(job);
+        recordBuildEvent(job, "failed", "Knowledge graph build failed.",
+                Map.of("error", message));
+    }
+
+    private void initializeBuildProgress(KGBuildJob job, int totalEntries) {
+        job.setTotalEntries(totalEntries);
+        job.setProcessedEntries(0);
+        job.setNodeCount(0);
+        job.setEdgeCount(0);
+        kgBuildJobMapper.updateById(job);
+        recordBuildEvent(job, "entries_loaded", "Eligible knowledge entries were loaded.",
+                Map.of("totalEntries", totalEntries));
+    }
+
+    private void updateBuildProgress(KGBuildJob job, int processedEntries, int nodeCount, int edgeCount) {
+        job.setProcessedEntries(processedEntries);
+        job.setNodeCount(nodeCount);
+        job.setEdgeCount(edgeCount);
+        kgBuildJobMapper.updateById(job);
+    }
+
+    private void clearProjectGraph(Long projectId) {
+        kgEdgeMapper.delete(new LambdaQueryWrapper<KGEdge>().eq(KGEdge::getProjectId, projectId));
+        kgNodeMapper.delete(new LambdaQueryWrapper<KGNode>().eq(KGNode::getProjectId, projectId));
+    }
+
+    private void cleanupStaleEntryBuildStates(Long projectId, List<KnowledgeEntry> entries) {
+        Set<Long> currentEntryIds = entries.stream()
+                .map(KnowledgeEntry::getId)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toSet());
+        List<KGEntryBuildState> states = kgEntryBuildStateMapper.selectList(
+                new LambdaQueryWrapper<KGEntryBuildState>().eq(KGEntryBuildState::getProjectId, projectId));
+        for (KGEntryBuildState state : states) {
+            if (state.getEntryId() == null || !currentEntryIds.contains(state.getEntryId())) {
+                kgEntryBuildStateMapper.deleteById(state.getId());
+            }
+        }
+    }
+
+    private void upsertEntryBuildState(KnowledgeEntry entry, KGNode node, KGBuildJob job) {
+        if (entry.getId() == null) {
+            return;
+        }
+
+        KGEntryBuildState state = kgEntryBuildStateMapper.selectOne(
+                new LambdaQueryWrapper<KGEntryBuildState>()
+                        .eq(KGEntryBuildState::getProjectId, job.getProjectId())
+                        .eq(KGEntryBuildState::getEntryId, entry.getId())
+                        .last("LIMIT 1"));
+        if (state == null) {
+            state = new KGEntryBuildState();
+            state.setProjectId(job.getProjectId());
+            state.setEntryId(entry.getId());
+        }
+
+        state.setEntryHash(buildEntryHash(entry));
+        state.setGraphVersion(job.getGraphVersion());
+        state.setNodeId(node.getId());
+        state.setStatus("clean");
+        state.setLastBuiltAt(now());
+        if (state.getId() == null) {
+            kgEntryBuildStateMapper.insert(state);
+        } else {
+            kgEntryBuildStateMapper.updateById(state);
+        }
+    }
+
+    static String buildEntryHash(KnowledgeEntry entry) {
+        String material = String.join("\u001F",
+                safeHashValue(entry.getTitle()),
+                safeHashValue(entry.getEntryType()),
+                safeHashValue(entry.getEntryLibrary()),
+                safeHashValue(entry.getDocumentId()),
+                safeHashValue(entry.getSourceName()),
+                safeHashValue(entry.getSourceOrigin()),
+                safeHashValue(entry.getContent()),
+                safeHashValue(entry.getKeywords()),
+                safeHashValue(entry.getCategoryL1()),
+                safeHashValue(entry.getCategoryL2()),
+                safeHashValue(entry.getDescription()),
+                safeHashValue(entry.getRelated()));
+        try {
+            byte[] digest = MessageDigest.getInstance("SHA-256")
+                    .digest(material.getBytes(StandardCharsets.UTF_8));
+            StringBuilder hash = new StringBuilder(digest.length * 2);
+            for (byte value : digest) {
+                hash.append(String.format("%02x", value));
+            }
+            return hash.toString();
+        } catch (NoSuchAlgorithmException e) {
+            throw new IllegalStateException("SHA-256 is unavailable.", e);
+        }
+    }
+
+    private static String safeHashValue(Object value) {
+        return value == null ? "" : String.valueOf(value);
+    }
+
+    private Map<String, Object> buildJobDetails(KGBuildJob job) {
+        List<KGBuildEvent> events = kgBuildEventMapper.selectList(
+                new LambdaQueryWrapper<KGBuildEvent>()
+                        .eq(KGBuildEvent::getJobId, job.getId())
+                        .orderByAsc(KGBuildEvent::getId));
+        Map<String, Object> result = new LinkedHashMap<>();
+        result.put("found", true);
+        result.put("job_id", job.getId());
+        result.put("status", job.getStatus());
+        result.put("job", job);
+        result.put("events", events);
+        return result;
+    }
+
+    private void recordBuildEvent(KGBuildJob job, String eventType, String message) {
+        recordBuildEvent(job, eventType, message, Collections.emptyMap());
+    }
+
+    private void recordBuildEvent(
+            KGBuildJob job,
+            String eventType,
+            String message,
+            Map<String, Object> payload) {
+        try {
+            KGBuildEvent event = new KGBuildEvent();
+            event.setJobId(job.getId());
+            event.setProjectId(job.getProjectId());
+            event.setEventType(eventType);
+            event.setMessage(message);
+            event.setPayloadJson(jsonMapper.writeValueAsString(payload));
+            event.setCreatedAt(now());
+            kgBuildEventMapper.insert(event);
+        } catch (Exception e) {
+            log.warn("Could not record graph build event {} for job {}: {}",
+                    eventType, job.getId(), e.getMessage());
+        }
+    }
+
+    private String now() {
+        return LocalDateTime.now().format(BUILD_TIME_FORMAT);
+    }
 
     private Map<Long, Integer> computeLinkCounts(List<KGNode> nodes, List<KGEdge> edges) {
         Map<Long, Integer> linkCounts = new HashMap<>();
@@ -383,7 +621,7 @@ public class KGService {
      * 自动从知识词条构建 KG（内部方法）
      * 不需要 LLM：直接从词条标题/关键词创建节点，基于共享关键词创建边
      */
-    private synchronized List<KGNode> autoBuildGraph() {
+    private synchronized List<KGNode> autoBuildGraph(KGBuildJob job) {
         Long pid = projectContext.getCurrentProjectId();
         if (pid == null) {
             log.warn("Project ID is null, skipping graph generation to prevent cross-project leakage.");
@@ -395,19 +633,22 @@ public class KGService {
         entryWrapper.eq(KnowledgeEntry::getProjectId, pid);
         entryWrapper.ne(KnowledgeEntry::getEntryType, "image").ne(KnowledgeEntry::getEntryType, "table");
         List<KnowledgeEntry> entries = knowledgeEntryMapper.selectList(entryWrapper);
+        initializeBuildProgress(job, entries.size());
+        cleanupStaleEntryBuildStates(pid, entries);
+        clearProjectGraph(pid);
 
         if (entries.isEmpty()) {
+            recordBuildEvent(job, "graph_cleared", "No eligible entries were found; cleared the project graph.");
             return Collections.emptyList();
         }
 
         // 清理旧 of KG 数据（当前项目）
-        kgNodeMapper.delete(new LambdaQueryWrapper<KGNode>().eq(KGNode::getProjectId, pid));
-        kgEdgeMapper.delete(new LambdaQueryWrapper<KGEdge>().eq(KGEdge::getProjectId, pid));
 
         // 1. 为每个词条创建节点
         List<KGNode> nodes = new ArrayList<>();
         Map<String, KGNode> titleToNode = new HashMap<>();
         int communityCounter = 0;
+        int processedEntries = 0;
 
         for (KnowledgeEntry entry : entries) {
             KGNode node = new KGNode();
@@ -421,6 +662,8 @@ public class KGService {
             nodes.add(node);
             titleToNode.put(entry.getTitle(), node);
             communityCounter++;
+            upsertEntryBuildState(entry, node, job);
+            updateBuildProgress(job, ++processedEntries, nodes.size(), 0);
         }
 
         // 2. 基于共享关键词创建边
@@ -476,6 +719,9 @@ public class KGService {
         allEdges.addAll(sourceContainmentEdges);
 
         batchInsertEdges(allEdges);
+        updateBuildProgress(job, processedEntries, nodes.size(), allEdges.size());
+        recordBuildEvent(job, "edges_built", "Rule-based graph edges were created.",
+                Map.of("nodeCount", nodes.size(), "edgeCount", allEdges.size()));
 
         // 3. 调用 Sidecar 计算真实的社区划分 (Louvain / Union-Find)
         try {
@@ -529,6 +775,7 @@ public class KGService {
             }
         }
 
+        recordBuildEvent(job, "communities_computed", "Community assignment completed.");
         return nodes;
     }
 

@@ -11,6 +11,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class KGServiceSourceOverlapTest {
@@ -97,6 +98,33 @@ class KGServiceSourceOverlapTest {
         );
 
         assertTrue(memberships.isEmpty());
+    }
+
+    @Test
+    void entryHashIsStableForEquivalentEntryData() {
+        KnowledgeEntry first = entry(1L, 100L, "Report-A");
+        first.setTitle("Contract termination");
+        first.setContent("A party may terminate the contract after material breach.");
+        first.setKeywords("contract,termination,breach");
+
+        KnowledgeEntry second = entry(2L, 100L, "Report-A");
+        second.setTitle("Contract termination");
+        second.setContent("A party may terminate the contract after material breach.");
+        second.setKeywords("contract,termination,breach");
+
+        assertEquals(KGService.buildEntryHash(first), KGService.buildEntryHash(second));
+    }
+
+    @Test
+    void entryHashChangesWhenGraphRelevantContentChanges() {
+        KnowledgeEntry entry = entry(1L, 100L, "Report-A");
+        entry.setTitle("Contract termination");
+        entry.setContent("A party may terminate the contract after material breach.");
+
+        String originalHash = KGService.buildEntryHash(entry);
+        entry.setContent("A party may terminate the contract after a material breach with notice.");
+
+        assertNotEquals(originalHash, KGService.buildEntryHash(entry));
     }
 
     private static KnowledgeEntry entry(Long id, Long documentId, String sourceName) {

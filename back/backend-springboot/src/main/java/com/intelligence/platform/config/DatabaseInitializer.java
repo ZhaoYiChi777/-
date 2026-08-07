@@ -12,10 +12,6 @@ import java.sql.DatabaseMetaData;
 import java.sql.ResultSet;
 import java.sql.Statement;
 
-/**
- * 数据库初始化：自动迁移 Schema（幂等 ALTER TABLE ADD COLUMN）
- * 适配 MySQL 8.x
- */
 @Component
 public class DatabaseInitializer implements CommandLineRunner {
 
@@ -25,27 +21,103 @@ public class DatabaseInitializer implements CommandLineRunner {
     private DataSource dataSource;
 
     @Override
-    public void run(String... args) throws Exception {
+    public void run(String... args) {
         try (Connection conn = dataSource.getConnection();
              Statement stmt = conn.createStatement()) {
-            // 自动迁移：确保新列存在（MySQL 版本）
+            ensureGraphBuildTables(stmt);
             migrateSchema(conn, stmt);
-            // 初始化缺失的系统配置项
             initSettings(stmt);
         } catch (Exception e) {
-            log.warn("DatabaseInitializer 执行失败: {}", e.getMessage());
+            log.warn("DatabaseInitializer failed: {}", e.getMessage());
         }
     }
 
-    /**
-     * 初始化缺失的系统配置项（幂等，INSERT IGNORE）
-     * 确保升级后新配置项自动写入已有数据库
-     */
+    private void ensureGraphBuildTables(Statement stmt) {
+        String[] statements = {
+                """
+                CREATE TABLE IF NOT EXISTS kg_build_jobs (
+                    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+                    project_id BIGINT,
+                    status VARCHAR(50) NOT NULL,
+                    build_mode VARCHAR(50) NOT NULL,
+                    graph_version BIGINT,
+                    total_entries INT DEFAULT 0,
+                    processed_entries INT DEFAULT 0,
+                    node_count INT DEFAULT 0,
+                    edge_count INT DEFAULT 0,
+                    error_message TEXT,
+                    started_at VARCHAR(50),
+                    finished_at VARCHAR(50),
+                    INDEX idx_kg_build_jobs_project_id (project_id),
+                    INDEX idx_kg_build_jobs_status (status),
+                    INDEX idx_kg_build_jobs_graph_version (graph_version)
+                ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+                """,
+                """
+                CREATE TABLE IF NOT EXISTS kg_entry_build_states (
+                    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+                    project_id BIGINT NOT NULL,
+                    entry_id BIGINT NOT NULL,
+                    entry_hash VARCHAR(128) NOT NULL,
+                    graph_version BIGINT,
+                    node_id BIGINT,
+                    status VARCHAR(50) NOT NULL,
+                    last_built_at VARCHAR(50),
+                    UNIQUE KEY uk_kg_entry_build_state_project_entry (project_id, entry_id),
+                    INDEX idx_kg_entry_build_states_project_id (project_id),
+                    INDEX idx_kg_entry_build_states_status (status),
+                    INDEX idx_kg_entry_build_states_graph_version (graph_version)
+                ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+                """,
+                """
+                CREATE TABLE IF NOT EXISTS kg_relation_candidates (
+                    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+                    project_id BIGINT NOT NULL,
+                    source_entry_id BIGINT,
+                    target_entry_id BIGINT,
+                    relation_type VARCHAR(100) NOT NULL,
+                    confidence DOUBLE DEFAULT 0,
+                    evidence TEXT,
+                    reason TEXT,
+                    extractor VARCHAR(100),
+                    graph_version BIGINT,
+                    status VARCHAR(50) NOT NULL,
+                    created_at VARCHAR(50),
+                    INDEX idx_kg_relation_candidates_project_id (project_id),
+                    INDEX idx_kg_relation_candidates_type (relation_type),
+                    INDEX idx_kg_relation_candidates_status (status),
+                    INDEX idx_kg_relation_candidates_graph_version (graph_version)
+                ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+                """,
+                """
+                CREATE TABLE IF NOT EXISTS kg_build_events (
+                    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+                    job_id BIGINT NOT NULL,
+                    project_id BIGINT,
+                    event_type VARCHAR(100) NOT NULL,
+                    message TEXT,
+                    payload_json LONGTEXT,
+                    created_at VARCHAR(50),
+                    INDEX idx_kg_build_events_job_id (job_id),
+                    INDEX idx_kg_build_events_project_id (project_id),
+                    INDEX idx_kg_build_events_type (event_type)
+                ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+                """
+        };
+
+        for (String statement : statements) {
+            try {
+                stmt.execute(statement);
+            } catch (Exception e) {
+                log.debug("Graph build table init skipped: {}", e.getMessage());
+            }
+        }
+    }
+
     private void initSettings(Statement stmt) {
         String[][] settings = {
-                // LiteParse 本地文档解析引擎
-                {"liteparse_enabled", "true", "是否启用 LiteParse 本地文档解析引擎"},
-                {"liteparse_cli_path", "lit", "LiteParse CLI 可执行文件路径"},
+                {"liteparse_enabled", "true", "Enable LiteParse local document parser"},
+                {"liteparse_cli_path", "lit", "LiteParse CLI executable path"},
         };
 
         int added = 0;
@@ -67,13 +139,8 @@ public class DatabaseInitializer implements CommandLineRunner {
         }
     }
 
-    /**
-     * 自动迁移数据库 schema（MySQL 兼容，安全添加缺失列）
-     * 解决 schema.sql 只在首次创建时执行、后续 ALTER TABLE 不生效的问题
-     */
     private void migrateSchema(Connection conn, Statement stmt) {
         String[][] migrations = {
-                // documents 表 - 来源追踪字段
                 {"documents", "source_origin", "TEXT"},
                 {"documents", "source_path", "TEXT"},
                 {"documents", "source_identity", "TEXT"},
@@ -81,14 +148,12 @@ public class DatabaseInitializer implements CommandLineRunner {
                 {"documents", "url", "TEXT"},
                 {"documents", "source_doc_id", "BIGINT"},
                 {"documents", "source_page", "INT"},
-                // knowledge_entries 表 - 多模态字段
                 {"knowledge_entries", "media_type", "VARCHAR(50) DEFAULT 'text'"},
                 {"knowledge_entries", "media_path", "VARCHAR(1000)"},
                 {"knowledge_entries", "source_origin", "TEXT"},
                 {"knowledge_entries", "table_markdown", "LONGTEXT"},
                 {"knowledge_entries", "description", "TEXT"},
                 {"knowledge_entries", "related", "TEXT"},
-                // project_id - 数据隔离（所有业务表）
                 {"documents", "project_id", "BIGINT"},
                 {"knowledge_entries", "project_id", "BIGINT"},
                 {"kg_nodes", "project_id", "BIGINT"},
@@ -104,16 +169,14 @@ public class DatabaseInitializer implements CommandLineRunner {
         };
 
         int added = 0;
-        for (String[] m : migrations) {
-            String tableName = m[0];
-            String columnName = m[1];
-            String columnDef = m[2];
+        for (String[] migration : migrations) {
+            String tableName = migration[0];
+            String columnName = migration[1];
+            String columnDef = migration[2];
             try {
-                // 先检查列是否存在（MySQL 方式）
                 DatabaseMetaData meta = conn.getMetaData();
                 try (ResultSet rs = meta.getColumns(conn.getCatalog(), null, tableName, columnName)) {
                     if (rs.next()) {
-                        // 列已存在，跳过
                         continue;
                     }
                 }
@@ -121,10 +184,10 @@ public class DatabaseInitializer implements CommandLineRunner {
                 added++;
                 log.info("Migration: added column {}.{}", tableName, columnName);
             } catch (Exception e) {
-                // 列已存在或其他错误，跳过
                 log.debug("Migration skip {}.{}: {}", tableName, columnName, e.getMessage());
             }
         }
+
         if (added > 0) {
             log.info("Database migration complete: added {} new columns", added);
         } else {
