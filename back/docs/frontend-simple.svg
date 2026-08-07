@@ -1,0 +1,202 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1050 780" font-family="PingFang SC, Microsoft YaHei, sans-serif">
+  <defs>
+    <linearGradient id="gHeader" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#2563EB;stop-opacity:1"/>
+      <stop offset="100%" style="stop-color:#3B82F6;stop-opacity:1"/>
+    </linearGradient>
+    <linearGradient id="gKnowledge" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#3B82F6;stop-opacity:1"/>
+      <stop offset="100%" style="stop-color:#2563EB;stop-opacity:1"/>
+    </linearGradient>
+    <linearGradient id="gSmart" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#8B5CF6;stop-opacity:1"/>
+      <stop offset="100%" style="stop-color:#7C3AED;stop-opacity:1"/>
+    </linearGradient>
+    <linearGradient id="gSettings" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#F59E0B;stop-opacity:1"/>
+      <stop offset="100%" style="stop-color:#D97706;stop-opacity:1"/>
+    </linearGradient>
+    <linearGradient id="gProject" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#10B981;stop-opacity:1"/>
+      <stop offset="100%" style="stop-color:#059669;stop-opacity:1"/>
+    </linearGradient>
+    <filter id="shadow" x="-2%" y="-2%" width="104%" height="104%">
+      <feDropShadow dx="2" dy="3" stdDeviation="4" flood-opacity="0.12"/>
+    </filter>
+    <filter id="shadowLight" x="-1%" y="-1%" width="102%" height="102%">
+      <feDropShadow dx="1" dy="2" stdDeviation="2" flood-opacity="0.08"/>
+    </filter>
+    <marker id="arrowRight" markerWidth="10" markerHeight="7" refX="5" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#94A3B8"/>
+    </marker>
+  </defs>
+
+  <!-- 背景 -->
+  <rect width="1050" height="780" fill="#F8FAFC" rx="10"/>
+
+  <!-- 顶部标题栏 -->
+  <rect x="0" y="0" width="1050" height="56" rx="10" fill="url(#gHeader)"/>
+  <rect x="0" y="46" width="1050" height="10" fill="url(#gHeader)"/>
+  <text x="525" y="38" text-anchor="middle" font-size="22" font-weight="bold" fill="white">前端页面结构图</text>
+
+  <!-- 导航栏模拟 -->
+  <rect x="20" y="70" width="1010" height="48" rx="8" fill="white" stroke="#E2E8F0" stroke-width="1" filter="url(#shadow)"/>
+  <rect x="30" y="76" width="120" height="36" rx="6" fill="#3B82F6"/>
+  <text x="90" y="100" text-anchor="middle" font-size="13" font-weight="bold" fill="white">知识库管理</text>
+  <rect x="160" y="76" width="120" height="36" rx="6" fill="#F1F5F9" stroke="#E2E8F0" stroke-width="1"/>
+  <text x="220" y="100" text-anchor="middle" font-size="13" font-weight="600" fill="#475569">智能服务</text>
+  <rect x="290" y="76" width="120" height="36" rx="6" fill="#F1F5F9" stroke="#E2E8F0" stroke-width="1"/>
+  <text x="350" y="100" text-anchor="middle" font-size="13" font-weight="600" fill="#475569">系统设置</text>
+  <rect x="420" y="76" width="120" height="36" rx="6" fill="#F1F5F9" stroke="#E2E8F0" stroke-width="1"/>
+  <text x="480" y="100" text-anchor="middle" font-size="13" font-weight="600" fill="#475569">项目管理</text>
+  <!-- 右侧项目切换 -->
+  <rect x="820" y="76" width="200" height="36" rx="6" fill="#EFF6FF" stroke="#93C5FD" stroke-width="1"/>
+  <text x="920" y="100" text-anchor="middle" font-size="12" fill="#2563EB">当前项目：全部项目 ▾</text>
+
+  <!-- ==================== 区域一：知识库管理 ==================== -->
+  <g id="knowledge-management">
+    <rect x="20" y="135" width="1010" height="235" rx="12" fill="url(#gKnowledge)" filter="url(#shadow)"/>
+    <text x="45" y="163" font-size="17" font-weight="bold" fill="white">知识库管理</text>
+    <text x="1010" y="163" text-anchor="end" font-size="12" fill="#BFDBFE">Reports · Dynamics · Translations · Charts</text>
+
+    <!-- 研究报告 Reports -->
+    <rect x="40" y="180" width="230" height="170" rx="8" fill="rgba(255,255,255,0.2)" stroke="rgba(255,255,255,0.5)" stroke-width="1" filter="url(#shadowLight)"/>
+    <rect x="40" y="180" width="230" height="34" rx="8" fill="rgba(255,255,255,0.3)"/>
+    <rect x="40" y="202" width="230" height="12" fill="rgba(255,255,255,0.3)"/>
+    <text x="155" y="203" text-anchor="middle" font-size="14" font-weight="bold" fill="white">研究报告 (Reports)</text>
+    <text x="60" y="234" font-size="12" fill="rgba(255,255,255,0.9)">  报告列表浏览与检索</text>
+    <text x="60" y="254" font-size="12" fill="rgba(255,255,255,0.9)">  语义搜索 + 全文检索</text>
+    <text x="60" y="274" font-size="12" fill="rgba(255,255,255,0.9)">  多维度分类筛选</text>
+    <text x="60" y="294" font-size="12" fill="rgba(255,255,255,0.9)">  报告详情查看/编辑</text>
+    <text x="60" y="314" font-size="12" fill="rgba(255,255,255,0.9)">  相关性排序 · 分页浏览</text>
+    <text x="60" y="334" font-size="12" fill="rgba(255,255,255,0.9)">  关联文档推荐</text>
+
+    <!-- 动态信息 Dynamics -->
+    <rect x="285" y="180" width="230" height="170" rx="8" fill="rgba(255,255,255,0.2)" stroke="rgba(255,255,255,0.5)" stroke-width="1" filter="url(#shadowLight)"/>
+    <rect x="285" y="180" width="230" height="34" rx="8" fill="rgba(255,255,255,0.3)"/>
+    <rect x="285" y="202" width="230" height="12" fill="rgba(255,255,255,0.3)"/>
+    <text x="400" y="203" text-anchor="middle" font-size="14" font-weight="bold" fill="white">动态信息 (Dynamics)</text>
+    <text x="305" y="234" font-size="12" fill="rgba(255,255,255,0.9)">  动态信息快速录入</text>
+    <text x="305" y="254" font-size="12" fill="rgba(255,255,255,0.9)">  时效性优先展示</text>
+    <text x="305" y="274" font-size="12" fill="rgba(255,255,255,0.9)">  新闻/快讯/通报</text>
+    <text x="305" y="294" font-size="12" fill="rgba(255,255,255,0.9)">  来源追溯</text>
+    <text x="305" y="314" font-size="12" fill="rgba(255,255,255,0.9)">  时间线视图</text>
+    <text x="305" y="334" font-size="12" fill="rgba(255,255,255,0.9)">  标签分类管理</text>
+
+    <!-- 译丛译著库 Translation Series -->
+    <rect x="530" y="180" width="230" height="170" rx="8" fill="rgba(255,255,255,0.2)" stroke="rgba(255,255,255,0.5)" stroke-width="1" filter="url(#shadowLight)"/>
+    <rect x="530" y="180" width="230" height="34" rx="8" fill="rgba(255,255,255,0.3)"/>
+    <rect x="530" y="202" width="230" height="12" fill="rgba(255,255,255,0.3)"/>
+    <text x="645" y="203" text-anchor="middle" font-size="14" font-weight="bold" fill="white">译丛译著库 (Translation Series)</text>
+    <text x="550" y="234" font-size="12" fill="rgba(255,255,255,0.9)">  原文与译文对照</text>
+    <text x="550" y="254" font-size="12" fill="rgba(255,255,255,0.9)">  翻译任务管理</text>
+    <text x="550" y="274" font-size="12" fill="rgba(255,255,255,0.9)">  译者信息管理</text>
+    <text x="550" y="294" font-size="12" fill="rgba(255,255,255,0.9)">  出版信息记录</text>
+    <text x="550" y="314" font-size="12" fill="rgba(255,255,255,0.9)">  全文检索支持</text>
+    <text x="550" y="334" font-size="12" fill="rgba(255,255,255,0.9)">  分类标签体系</text>
+
+    <!-- 图表库 Charts -->
+    <rect x="775" y="180" width="235" height="170" rx="8" fill="rgba(255,255,255,0.2)" stroke="rgba(255,255,255,0.5)" stroke-width="1" filter="url(#shadowLight)"/>
+    <rect x="775" y="180" width="235" height="34" rx="8" fill="rgba(255,255,255,0.3)"/>
+    <rect x="775" y="202" width="235" height="12" fill="rgba(255,255,255,0.3)"/>
+    <text x="892" y="203" text-anchor="middle" font-size="14" font-weight="bold" fill="white">图表库 (Charts)</text>
+    <text x="795" y="234" font-size="12" fill="rgba(255,255,255,0.9)">  画廊式缩略图浏览</text>
+    <text x="795" y="254" font-size="12" fill="rgba(255,255,255,0.9)">  图表元数据管理</text>
+    <text x="795" y="274" font-size="12" fill="rgba(255,255,255,0.9)">  出处追溯与引用</text>
+    <text x="795" y="294" font-size="12" fill="rgba(255,255,255,0.9)">  ECharts 可视化展示</text>
+    <text x="795" y="314" font-size="12" fill="rgba(255,255,255,0.9)">  图片格式支持</text>
+    <text x="795" y="334" font-size="12" fill="rgba(255,255,255,0.9)">  分类与标签检索</text>
+  </g>
+
+  <!-- ==================== 区域二：智能服务 ==================== -->
+  <g id="smart-services">
+    <rect x="20" y="388" width="500" height="200" rx="12" fill="url(#gSmart)" filter="url(#shadow)"/>
+    <text x="45" y="416" font-size="17" font-weight="bold" fill="white">智能服务</text>
+
+    <!-- 智能问答 SmartQA -->
+    <rect x="40" y="432" width="220" height="138" rx="8" fill="rgba(255,255,255,0.2)" stroke="rgba(255,255,255,0.5)" stroke-width="1" filter="url(#shadowLight)"/>
+    <rect x="40" y="432" width="220" height="32" rx="8" fill="rgba(255,255,255,0.3)"/>
+    <rect x="40" y="452" width="220" height="12" fill="rgba(255,255,255,0.3)"/>
+    <text x="150" y="455" text-anchor="middle" font-size="14" font-weight="bold" fill="white">智能问答 (SmartQA)</text>
+    <text x="60" y="484" font-size="12" fill="rgba(255,255,255,0.9)">  多轮对话交互</text>
+    <text x="60" y="504" font-size="12" fill="rgba(255,255,255,0.9)">  Markdown 富文本渲染</text>
+    <text x="60" y="524" font-size="12" fill="rgba(255,255,255,0.9)">  引用来源侧边面板</text>
+    <text x="60" y="544" font-size="12" fill="rgba(255,255,255,0.9)">  图片内容展示</text>
+    <text x="60" y="564" font-size="12" fill="rgba(255,255,255,0.9)">  流式实时输出</text>
+
+    <!-- 深度研究 DeepResearch -->
+    <rect x="280" y="432" width="220" height="138" rx="8" fill="rgba(255,255,255,0.2)" stroke="rgba(255,255,255,0.5)" stroke-width="1" filter="url(#shadowLight)"/>
+    <rect x="280" y="432" width="220" height="32" rx="8" fill="rgba(255,255,255,0.3)"/>
+    <rect x="280" y="452" width="220" height="12" fill="rgba(255,255,255,0.3)"/>
+    <text x="390" y="455" text-anchor="middle" font-size="14" font-weight="bold" fill="white">深度研究 (DeepResearch)</text>
+    <text x="300" y="484" font-size="12" fill="rgba(255,255,255,0.9)">  研究问题分解</text>
+    <text x="300" y="504" font-size="12" fill="rgba(255,255,255,0.9)">  多源数据检索</text>
+    <text x="300" y="524" font-size="12" fill="rgba(255,255,255,0.9)">  研究报告自动生成</text>
+    <text x="300" y="544" font-size="12" fill="rgba(255,255,255,0.9)">  交叉验证与分析</text>
+    <text x="300" y="564" font-size="12" fill="rgba(255,255,255,0.9)">  结论与引用溯源</text>
+  </g>
+
+  <!-- ==================== 区域三：系统设置 ==================== -->
+  <g id="system-settings">
+    <rect x="535" y="388" width="495" height="200" rx="12" fill="url(#gSettings)" filter="url(#shadow)"/>
+    <text x="560" y="416" font-size="17" font-weight="bold" fill="white">系统设置</text>
+
+    <!-- OCR 配置 -->
+    <rect x="555" y="432" width="145" height="138" rx="8" fill="rgba(255,255,255,0.2)" stroke="rgba(255,255,255,0.5)" stroke-width="1" filter="url(#shadowLight)"/>
+    <rect x="555" y="432" width="145" height="32" rx="8" fill="rgba(255,255,255,0.3)"/>
+    <rect x="555" y="452" width="145" height="12" fill="rgba(255,255,255,0.3)"/>
+    <text x="627" y="455" text-anchor="middle" font-size="13" font-weight="bold" fill="white">OCR 配置</text>
+    <text x="570" y="484" font-size="11" fill="rgba(255,255,255,0.9)">  API 密钥设置</text>
+    <text x="570" y="504" font-size="11" fill="rgba(255,255,255,0.9)">  识别模型选择</text>
+    <text x="570" y="524" font-size="11" fill="rgba(255,255,255,0.9)">  表格识别参数</text>
+    <text x="570" y="544" font-size="11" fill="rgba(255,255,255,0.9)">  图片描述开关</text>
+    <text x="570" y="564" font-size="11" fill="rgba(255,255,255,0.9)">  批量处理配置</text>
+
+    <!-- 问答设置 -->
+    <rect x="715" y="432" width="145" height="138" rx="8" fill="rgba(255,255,255,0.2)" stroke="rgba(255,255,255,0.5)" stroke-width="1" filter="url(#shadowLight)"/>
+    <rect x="715" y="432" width="145" height="32" rx="8" fill="rgba(255,255,255,0.3)"/>
+    <rect x="715" y="452" width="145" height="12" fill="rgba(255,255,255,0.3)"/>
+    <text x="787" y="455" text-anchor="middle" font-size="13" font-weight="bold" fill="white">问答设置</text>
+    <text x="730" y="484" font-size="11" fill="rgba(255,255,255,0.9)">  检索数量配置</text>
+    <text x="730" y="504" font-size="11" fill="rgba(255,255,255,0.9)">  相似度阈值</text>
+    <text x="730" y="524" font-size="11" fill="rgba(255,255,255,0.9)">  Prompt 模板</text>
+    <text x="730" y="544" font-size="11" fill="rgba(255,255,255,0.9)">  流式输出开关</text>
+    <text x="730" y="564" font-size="11" fill="rgba(255,255,255,0.9)">  引用展示方式</text>
+
+    <!-- LLM 配置 -->
+    <rect x="875" y="432" width="140" height="138" rx="8" fill="rgba(255,255,255,0.2)" stroke="rgba(255,255,255,0.5)" stroke-width="1" filter="url(#shadowLight)"/>
+    <rect x="875" y="432" width="140" height="32" rx="8" fill="rgba(255,255,255,0.3)"/>
+    <rect x="875" y="452" width="140" height="12" fill="rgba(255,255,255,0.3)"/>
+    <text x="945" y="455" text-anchor="middle" font-size="13" font-weight="bold" fill="white">LLM 配置</text>
+    <text x="890" y="484" font-size="11" fill="rgba(255,255,255,0.9)">  模型提供商选择</text>
+    <text x="890" y="504" font-size="11" fill="rgba(255,255,255,0.9)">  API 端点配置</text>
+    <text x="890" y="524" font-size="11" fill="rgba(255,255,255,0.9)">  Token 限制设置</text>
+    <text x="890" y="544" font-size="11" fill="rgba(255,255,255,0.9)">  温度参数调整</text>
+    <text x="890" y="564" font-size="11" fill="rgba(255,255,255,0.9)">  Embedding 模型</text>
+  </g>
+
+  <!-- ==================== 区域四：项目管理 ==================== -->
+  <g id="project-management">
+    <rect x="20" y="606" width="1010" height="135" rx="12" fill="url(#gProject)" filter="url(#shadow)"/>
+    <text x="45" y="634" font-size="17" font-weight="bold" fill="white">项目管理 (Projects)</text>
+
+    <rect x="40" y="650" width="225" height="72" rx="8" fill="rgba(255,255,255,0.2)" stroke="rgba(255,255,255,0.5)" stroke-width="1" filter="url(#shadowLight)"/>
+    <text x="152" y="678" text-anchor="middle" font-size="14" font-weight="bold" fill="white">项目切换</text>
+    <text x="152" y="700" text-anchor="middle" font-size="11" fill="rgba(255,255,255,0.85)">快速切换当前工作项目</text>
+
+    <rect x="280" y="650" width="225" height="72" rx="8" fill="rgba(255,255,255,0.2)" stroke="rgba(255,255,255,0.5)" stroke-width="1" filter="url(#shadowLight)"/>
+    <text x="392" y="678" text-anchor="middle" font-size="14" font-weight="bold" fill="white">项目信息</text>
+    <text x="392" y="700" text-anchor="middle" font-size="11" fill="rgba(255,255,255,0.85)">项目名称 · 描述 · 状态</text>
+
+    <rect x="520" y="650" width="225" height="72" rx="8" fill="rgba(255,255,255,0.2)" stroke="rgba(255,255,255,0.5)" stroke-width="1" filter="url(#shadowLight)"/>
+    <text x="632" y="678" text-anchor="middle" font-size="14" font-weight="bold" fill="white">数据隔离</text>
+    <text x="632" y="700" text-anchor="middle" font-size="11" fill="rgba(255,255,255,0.85)">各项目数据独立管理</text>
+
+    <rect x="760" y="650" width="250" height="72" rx="8" fill="rgba(255,255,255,0.2)" stroke="rgba(255,255,255,0.5)" stroke-width="1" filter="url(#shadowLight)"/>
+    <text x="885" y="678" text-anchor="middle" font-size="14" font-weight="bold" fill="white">统计面板</text>
+    <text x="885" y="700" text-anchor="middle" font-size="11" fill="rgba(255,255,255,0.85)">文档数 · 问答次数 · 研究进度</text>
+  </g>
+
+  <!-- 底部说明 -->
+  <text x="525" y="768" text-anchor="middle" font-size="11" fill="#94A3B8">智能情报分析平台 · 前端页面结构 · Vue 3 SPA 单页应用</text>
+</svg>

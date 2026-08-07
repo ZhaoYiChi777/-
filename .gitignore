@@ -1,0 +1,43 @@
+# Secrets and local configuration
+.env
+.env.*
+!.env.example
+
+# Dependencies and build outputs
+node_modules/
+dist/
+target/
+.npm-cache/
+.vite/
+coverage/
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# Runtime data and logs
+logs/
+uploads/
+data/
+*.log
+
+# Docker and offline image archives
+.docker-config/
+*.tar
+*.tar.gz
+*.tgz
+*.zip
+
+# Local tooling and operating-system metadata
+.agents/
+.idea/
+.vscode/
+.DS_Store
+__MACOSX/
+
+# Duplicate extraction artifact at the workspace root
+鏅鸿兘淇℃伅骞冲彴/
+
+# Empty extraction artifacts at the workspace root
+/deploy/
+/query

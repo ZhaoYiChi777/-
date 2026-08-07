@@ -1,0 +1,138 @@
+name: intelligence-platform
+
+services:
+  # MySQL数据库
+  mysql:
+    image: mysql:8.0
+    container_name: intel-platform-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-root123456}
+      MYSQL_DATABASE: intelligence_platform
+      MYSQL_CHARACTER_SET_SERVER: utf8mb4
+      MYSQL_COLLATION_SERVER: utf8mb4_unicode_ci
+    ports:
+      - "3307:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./init-db:/docker-entrypoint-initdb.d
+    networks:
+      - intel-network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  # 图谱计算服务 (Sidecar)
+  kg-compute:
+    image: intelligence-platform/kg-compute:offline
+    build:
+      context: ./kg-compute
+      dockerfile: Dockerfile
+    container_name: intel-platform-kg-compute
+    restart: unless-stopped
+    environment:
+      KG_COMPUTE_HOST: 0.0.0.0
+      KG_COMPUTE_PORT: 8101
+    ports:
+      - "8101:8101"
+    networks:
+      - intel-network
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://127.0.0.1:8101/health"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+      start_period: 10s
+
+  # 后端服务
+  backend:
+    image: intelligence-platform/backend:offline
+    build:
+      context: ./backend-springboot
+      dockerfile: Dockerfile
+    container_name: intel-platform-backend
+    restart: unless-stopped
+    environment:
+      SPRING_PROFILES_ACTIVE: production
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/intelligence_platform?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Shanghai&characterEncoding=UTF-8
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: ${MYSQL_ROOT_PASSWORD:-root123456}
+      JAVA_OPTS: "-Xms512m -Xmx2g -XX:+UseG1GC"
+      KG_COMPUTE_URL: http://kg-compute:8101
+      LLM_API_KEY: ${LLM_API_KEY:-}
+      LLM_MODEL: ${LLM_MODEL:-deepseek-chat}
+      LLM_PROVIDER: ${LLM_PROVIDER:-deepseek}
+      LLM_API_BASE_URL: ${LLM_API_BASE_URL:-https://api.deepseek.com}
+      EXTRACT_LLM_API_KEY: ${EXTRACT_LLM_API_KEY:-}
+      EXTRACT_LLM_MODEL: ${EXTRACT_LLM_MODEL:-}
+      EXTRACT_LLM_PROVIDER: ${EXTRACT_LLM_PROVIDER:-}
+      EXTRACT_LLM_BASE_URL: ${EXTRACT_LLM_BASE_URL:-}
+      VLM_API_KEY: ${VLM_API_KEY:-}
+      VLM_MODEL: ${VLM_MODEL:-}
+      VLM_PROVIDER: ${VLM_PROVIDER:-}
+      VLM_API_BASE_URL: ${VLM_API_BASE_URL:-}
+      EMBEDDING_API_KEY: ${EMBEDDING_API_KEY:-}
+      EMBEDDING_MODEL: ${EMBEDDING_MODEL:-}
+      EMBEDDING_PROVIDER: ${EMBEDDING_PROVIDER:-}
+      EMBEDDING_API_BASE_URL: ${EMBEDDING_API_BASE_URL:-}
+      RERANK_API_KEY: ${RERANK_API_KEY:-}
+      RERANK_MODEL: ${RERANK_MODEL:-}
+      RERANK_PROVIDER: ${RERANK_PROVIDER:-}
+      RERANK_API_BASE_URL: ${RERANK_API_BASE_URL:-}
+    ports:
+      - "8080:8080"
+    volumes:
+      - backend_logs:/app/logs
+      - backend_uploads:/app/uploads
+      - backend_data:/app/data
+    depends_on:
+      mysql:
+        condition: service_healthy
+      kg-compute:
+        condition: service_healthy
+    networks:
+      - intel-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+  # 前端服务
+  frontend:
+    image: intelligence-platform/frontend:offline
+    build:
+      context: ./frontend-vue
+      dockerfile: Dockerfile
+    container_name: intel-platform-frontend
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+    networks:
+      - intel-network
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://127.0.0.1/"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+      start_period: 10s
+
+volumes:
+  mysql_data:
+    driver: local
+  backend_logs:
+    driver: local
+  backend_uploads:
+    driver: local
+  backend_data:
+    driver: local
+
+networks:
+  intel-network:
+    driver: bridge

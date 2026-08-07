@@ -1,0 +1,287 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 1250" font-family="PingFang SC, Microsoft YaHei, sans-serif">
+  <defs>
+    <!-- 渐变色 -->
+    <linearGradient id="gUser" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#6366F1;stop-opacity:1"/>
+      <stop offset="100%" style="stop-color:#4F46E5;stop-opacity:1"/>
+    </linearGradient>
+    <linearGradient id="gFrontend" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#3B82F6;stop-opacity:1"/>
+      <stop offset="100%" style="stop-color:#2563EB;stop-opacity:1"/>
+    </linearGradient>
+    <linearGradient id="gApi" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#06B6D4;stop-opacity:1"/>
+      <stop offset="100%" style="stop-color:#0891B2;stop-opacity:1"/>
+    </linearGradient>
+    <linearGradient id="gBusiness" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#10B981;stop-opacity:1"/>
+      <stop offset="100%" style="stop-color:#059669;stop-opacity:1"/>
+    </linearGradient>
+    <linearGradient id="gData" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#F59E0B;stop-opacity:1"/>
+      <stop offset="100%" style="stop-color:#D97706;stop-opacity:1"/>
+    </linearGradient>
+    <linearGradient id="gExternal" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#EF4444;stop-opacity:1"/>
+      <stop offset="100%" style="stop-color:#DC2626;stop-opacity:1"/>
+    </linearGradient>
+    <linearGradient id="gController" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#D1FAE5;stop-opacity:1"/>
+      <stop offset="100%" style="stop-color:#ECFDF5;stop-opacity:1"/>
+    </linearGradient>
+    <linearGradient id="gService" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#DBEAFE;stop-opacity:1"/>
+      <stop offset="100%" style="stop-color:#EFF6FF;stop-opacity:1"/>
+    </linearGradient>
+    <linearGradient id="gMapper" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#FEF3C7;stop-opacity:1"/>
+      <stop offset="100%" style="stop-color:#FFFBEB;stop-opacity:1"/>
+    </linearGradient>
+    <!-- 阴影 -->
+    <filter id="shadow" x="-2%" y="-2%" width="104%" height="104%">
+      <feDropShadow dx="2" dy="3" stdDeviation="4" flood-opacity="0.12"/>
+    </filter>
+    <filter id="shadowLight" x="-1%" y="-1%" width="102%" height="102%">
+      <feDropShadow dx="1" dy="2" stdDeviation="2" flood-opacity="0.08"/>
+    </filter>
+    <!-- 箭头 -->
+    <marker id="arrowDown" markerWidth="12" markerHeight="8" refX="6" refY="4" orient="auto">
+      <polygon points="0 0, 12 4, 0 8" fill="#94A3B8"/>
+    </marker>
+    <marker id="arrowDownRed" markerWidth="12" markerHeight="8" refX="6" refY="4" orient="auto">
+      <polygon points="0 0, 12 4, 0 8" fill="#F87171"/>
+    </marker>
+    <marker id="arrowRight" markerWidth="10" markerHeight="7" refX="5" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#059669"/>
+    </marker>
+  </defs>
+
+  <!-- 背景 -->
+  <rect width="1200" height="1250" fill="#F8FAFC" rx="12"/>
+
+  <!-- 标题 -->
+  <text x="600" y="42" text-anchor="middle" font-size="28" font-weight="bold" fill="#1E293B">项目整体架构图</text>
+  <text x="600" y="68" text-anchor="middle" font-size="15" fill="#64748B">Spring Boot 4.1 + Vue 3 + SQLite + SiliconFlow API + 向量搜索</text>
+
+  <!-- ==================== 第一层：用户界面层 ==================== -->
+  <g id="user-layer">
+    <rect x="420" y="90" width="360" height="65" rx="32" fill="url(#gUser)" filter="url(#shadow)"/>
+    <text x="600" y="120" text-anchor="middle" font-size="13" fill="#C7D2FE">用户界面层</text>
+    <text x="600" y="140" text-anchor="middle" font-size="18" font-weight="bold" fill="white">Web 浏览器</text>
+  </g>
+
+  <!-- 箭头：用户 → 前端 -->
+  <line x1="600" y1="155" x2="600" y2="195" stroke="#94A3B8" stroke-width="2.5" marker-end="url(#arrowDown)"/>
+  <text x="620" y="180" font-size="11" fill="#64748B">HTTP 请求</text>
+
+  <!-- ==================== 第二层：前端应用层 ==================== -->
+  <g id="frontend-layer">
+    <rect x="40" y="203" width="1120" height="165" rx="12" fill="url(#gFrontend)" filter="url(#shadow)"/>
+    <text x="65" y="231" font-size="18" font-weight="bold" fill="white">前端应用层</text>
+    <text x="1140" y="231" text-anchor="end" font-size="13" fill="#BFDBFE">Vue 3 SPA 单页应用</text>
+
+    <!-- 前端模块 -->
+    <rect x="60" y="248" width="170" height="100" rx="8" fill="rgba(255,255,255,0.18)" stroke="rgba(255,255,255,0.4)" stroke-width="1" filter="url(#shadowLight)"/>
+    <text x="145" y="275" text-anchor="middle" font-size="14" font-weight="bold" fill="white">知识库管理</text>
+    <text x="145" y="297" text-anchor="middle" font-size="11" fill="rgba(255,255,255,0.85)">研究报告 · 动态信息</text>
+    <text x="145" y="315" text-anchor="middle" font-size="11" fill="rgba(255,255,255,0.85)">译丛译著库 · 图表库</text>
+    <text x="145" y="333" text-anchor="middle" font-size="11" fill="rgba(255,255,255,0.85)">文档上传与管理</text>
+
+    <rect x="245" y="248" width="170" height="100" rx="8" fill="rgba(255,255,255,0.18)" stroke="rgba(255,255,255,0.4)" stroke-width="1" filter="url(#shadowLight)"/>
+    <text x="330" y="275" text-anchor="middle" font-size="14" font-weight="bold" fill="white">智能问答</text>
+    <text x="330" y="297" text-anchor="middle" font-size="11" fill="rgba(255,255,255,0.85)">多轮对话界面</text>
+    <text x="330" y="315" text-anchor="middle" font-size="11" fill="rgba(255,255,255,0.85)">Markdown 渲染</text>
+    <text x="330" y="333" text-anchor="middle" font-size="11" fill="rgba(255,255,255,0.85)">引用来源面板</text>
+
+    <rect x="430" y="248" width="170" height="100" rx="8" fill="rgba(255,255,255,0.18)" stroke="rgba(255,255,255,0.4)" stroke-width="1" filter="url(#shadowLight)"/>
+    <text x="515" y="275" text-anchor="middle" font-size="14" font-weight="bold" fill="white">深度研究</text>
+    <text x="515" y="297" text-anchor="middle" font-size="11" fill="rgba(255,255,255,0.85)">研究计划管理</text>
+    <text x="515" y="315" text-anchor="middle" font-size="11" fill="rgba(255,255,255,0.85)">报告生成展示</text>
+    <text x="515" y="333" text-anchor="middle" font-size="11" fill="rgba(255,255,255,0.85)">进度追踪面板</text>
+
+    <rect x="615" y="248" width="170" height="100" rx="8" fill="rgba(255,255,255,0.18)" stroke="rgba(255,255,255,0.4)" stroke-width="1" filter="url(#shadowLight)"/>
+    <text x="700" y="275" text-anchor="middle" font-size="14" font-weight="bold" fill="white">项目管理</text>
+    <text x="700" y="297" text-anchor="middle" font-size="11" fill="rgba(255,255,255,0.85)">项目切换 · 信息</text>
+    <text x="700" y="315" text-anchor="middle" font-size="11" fill="rgba(255,255,255,0.85)">数据隔离管理</text>
+    <text x="700" y="333" text-anchor="middle" font-size="11" fill="rgba(255,255,255,0.85)">统计概览面板</text>
+
+    <rect x="800" y="248" width="170" height="100" rx="8" fill="rgba(255,255,255,0.18)" stroke="rgba(255,255,255,0.4)" stroke-width="1" filter="url(#shadowLight)"/>
+    <text x="885" y="275" text-anchor="middle" font-size="14" font-weight="bold" fill="white">系统设置</text>
+    <text x="885" y="297" text-anchor="middle" font-size="11" fill="rgba(255,255,255,0.85)">OCR 配置</text>
+    <text x="885" y="315" text-anchor="middle" font-size="11" fill="rgba(255,255,255,0.85)">问答参数设置</text>
+    <text x="885" y="333" text-anchor="middle" font-size="11" fill="rgba(255,255,255,0.85)">LLM 模型配置</text>
+
+    <rect x="985" y="248" width="155" height="100" rx="8" fill="rgba(255,255,255,0.18)" stroke="rgba(255,255,255,0.4)" stroke-width="1" filter="url(#shadowLight)"/>
+    <text x="1062" y="275" text-anchor="middle" font-size="14" font-weight="bold" fill="white">技术栈</text>
+    <text x="1062" y="297" text-anchor="middle" font-size="11" fill="rgba(255,255,255,0.85)">Vue 3 + TypeScript</text>
+    <text x="1062" y="315" text-anchor="middle" font-size="11" fill="rgba(255,255,255,0.85)">Element Plus</text>
+    <text x="1062" y="333" text-anchor="middle" font-size="11" fill="rgba(255,255,255,0.85)">Pinia · Vue Router</text>
+  </g>
+
+  <!-- 箭头：前端 → API -->
+  <line x1="600" y1="368" x2="600" y2="408" stroke="#94A3B8" stroke-width="2.5" marker-end="url(#arrowDown)"/>
+  <text x="620" y="393" font-size="11" fill="#64748B">Axios HTTP 客户端</text>
+
+  <!-- ==================== 第三层：API 网关层 ==================== -->
+  <g id="api-layer">
+    <rect x="40" y="416" width="1120" height="80" rx="12" fill="url(#gApi)" filter="url(#shadow)"/>
+    <text x="65" y="444" font-size="18" font-weight="bold" fill="white">API 网关层</text>
+    <text x="1140" y="444" text-anchor="end" font-size="13" fill="#A5F3FC">RESTful API · JSON 数据交换</text>
+
+    <rect x="60" y="458" width="180" height="26" rx="5" fill="rgba(255,255,255,0.2)" stroke="rgba(255,255,255,0.4)" stroke-width="1"/>
+    <text x="150" y="476" text-anchor="middle" font-size="12" font-weight="bold" fill="white">/api/upload/*</text>
+
+    <rect x="255" y="458" width="180" height="26" rx="5" fill="rgba(255,255,255,0.2)" stroke="rgba(255,255,255,0.4)" stroke-width="1"/>
+    <text x="345" y="476" text-anchor="middle" font-size="12" font-weight="bold" fill="white">/api/qa/*</text>
+
+    <rect x="450" y="458" width="180" height="26" rx="5" fill="rgba(255,255,255,0.2)" stroke="rgba(255,255,255,0.4)" stroke-width="1"/>
+    <text x="540" y="476" text-anchor="middle" font-size="12" font-weight="bold" fill="white">/api/research/*</text>
+
+    <rect x="645" y="458" width="180" height="26" rx="5" fill="rgba(255,255,255,0.2)" stroke="rgba(255,255,255,0.4)" stroke-width="1"/>
+    <text x="735" y="476" text-anchor="middle" font-size="12" font-weight="bold" fill="white">/api/knowledge/*</text>
+
+    <rect x="840" y="458" width="150" height="26" rx="5" fill="rgba(255,255,255,0.2)" stroke="rgba(255,255,255,0.4)" stroke-width="1"/>
+    <text x="915" y="476" text-anchor="middle" font-size="12" font-weight="bold" fill="white">/api/search/*</text>
+
+    <rect x="1005" y="458" width="135" height="26" rx="5" fill="rgba(255,255,255,0.2)" stroke="rgba(255,255,255,0.4)" stroke-width="1"/>
+    <text x="1072" y="476" text-anchor="middle" font-size="12" font-weight="bold" fill="white">/api/settings/*</text>
+  </g>
+
+  <!-- 箭头：API → 业务逻辑 -->
+  <line x1="600" y1="496" x2="600" y2="536" stroke="#94A3B8" stroke-width="2.5" marker-end="url(#arrowDown)"/>
+  <text x="620" y="521" font-size="11" fill="#64748B">请求路由</text>
+
+  <!-- ==================== 第四层：业务逻辑层 ==================== -->
+  <g id="business-layer">
+    <rect x="40" y="544" width="1120" height="340" rx="12" fill="url(#gBusiness)" filter="url(#shadow)"/>
+    <text x="65" y="572" font-size="18" font-weight="bold" fill="white">业务逻辑层</text>
+    <text x="1140" y="572" text-anchor="end" font-size="13" fill="#A7F3D0">Spring Boot 4.1 + Java 25</text>
+
+    <!-- Controller 层 -->
+    <rect x="60" y="590" width="1080" height="88" rx="8" fill="url(#gController)" filter="url(#shadowLight)"/>
+    <text x="80" y="613" font-size="15" font-weight="bold" fill="#065F46">Controller 层（REST 端点）</text>
+
+    <rect x="80" y="625" width="120" height="38" rx="5" fill="white" stroke="#6EE7B7" stroke-width="1.2"/>
+    <text x="140" y="649" text-anchor="middle" font-size="12" font-weight="bold" fill="#065F46">UploadCtrl</text>
+
+    <rect x="210" y="625" width="120" height="38" rx="5" fill="white" stroke="#6EE7B7" stroke-width="1.2"/>
+    <text x="270" y="649" text-anchor="middle" font-size="12" font-weight="bold" fill="#065F46">QACtrl</text>
+
+    <rect x="340" y="625" width="130" height="38" rx="5" fill="white" stroke="#6EE7B7" stroke-width="1.2"/>
+    <text x="405" y="649" text-anchor="middle" font-size="12" font-weight="bold" fill="#065F46">ResearchCtrl</text>
+
+    <rect x="480" y="625" width="130" height="38" rx="5" fill="white" stroke="#6EE7B7" stroke-width="1.2"/>
+    <text x="545" y="649" text-anchor="middle" font-size="12" font-weight="bold" fill="#065F46">DocumentCtrl</text>
+
+    <rect x="620" y="625" width="120" height="38" rx="5" fill="white" stroke="#6EE7B7" stroke-width="1.2"/>
+    <text x="680" y="649" text-anchor="middle" font-size="12" font-weight="bold" fill="#065F46">SearchCtrl</text>
+
+    <rect x="750" y="625" width="130" height="38" rx="5" fill="white" stroke="#6EE7B7" stroke-width="1.2"/>
+    <text x="815" y="649" text-anchor="middle" font-size="12" font-weight="bold" fill="#065F46">KnowledgeCtrl</text>
+
+    <rect x="890" y="625" width="120" height="38" rx="5" fill="white" stroke="#6EE7B7" stroke-width="1.2"/>
+    <text x="950" y="649" text-anchor="middle" font-size="12" font-weight="bold" fill="#065F46">ProjectCtrl</text>
+
+    <rect x="1020" y="625" width="105" height="38" rx="5" fill="white" stroke="#6EE7B7" stroke-width="1.2"/>
+    <text x="1072" y="649" text-anchor="middle" font-size="12" font-weight="bold" fill="#065F46">SettingCtrl</text>
+
+    <!-- 箭头 Controller → Service -->
+    <line x1="600" y1="678" x2="600" y2="700" stroke="#94A3B8" stroke-width="1.5" marker-end="url(#arrowDown)"/>
+
+    <!-- Service 层 -->
+    <rect x="60" y="705" width="1080" height="88" rx="8" fill="url(#gService)" filter="url(#shadowLight)"/>
+    <text x="80" y="728" font-size="15" font-weight="bold" fill="#1E40AF">Service 层（业务逻辑）</text>
+
+    <rect x="80" y="740" width="170" height="38" rx="5" fill="white" stroke="#93C5FD" stroke-width="1.2"/>
+    <text x="165" y="764" text-anchor="middle" font-size="12" font-weight="bold" fill="#1E40AF">UploadService</text>
+
+    <rect x="260" y="740" width="170" height="38" rx="5" fill="white" stroke="#93C5FD" stroke-width="1.2"/>
+    <text x="345" y="764" text-anchor="middle" font-size="12" font-weight="bold" fill="#1E40AF">QAService</text>
+
+    <rect x="440" y="740" width="190" height="38" rx="5" fill="white" stroke="#93C5FD" stroke-width="1.2"/>
+    <text x="535" y="764" text-anchor="middle" font-size="12" font-weight="bold" fill="#1E40AF">ResearchService</text>
+
+    <rect x="640" y="740" width="210" height="38" rx="5" fill="white" stroke="#93C5FD" stroke-width="1.2"/>
+    <text x="745" y="764" text-anchor="middle" font-size="12" font-weight="bold" fill="#1E40AF">VectorSearchService</text>
+
+    <rect x="860" y="740" width="130" height="38" rx="5" fill="white" stroke="#93C5FD" stroke-width="1.2"/>
+    <text x="925" y="764" text-anchor="middle" font-size="12" font-weight="bold" fill="#1E40AF">LlmService</text>
+
+    <rect x="1000" y="740" width="125" height="38" rx="5" fill="white" stroke="#93C5FD" stroke-width="1.2"/>
+    <text x="1062" y="764" text-anchor="middle" font-size="12" font-weight="bold" fill="#1E40AF">OcrService</text>
+
+    <!-- 箭头 Service → Mapper -->
+    <line x1="600" y1="793" x2="600" y2="812" stroke="#94A3B8" stroke-width="1.5" marker-end="url(#arrowDown)"/>
+
+    <!-- Mapper 层 -->
+    <rect x="60" y="818" width="1080" height="50" rx="8" fill="url(#gMapper)" filter="url(#shadowLight)"/>
+    <text x="80" y="848" font-size="15" font-weight="bold" fill="#92400E">Mapper 层（MyBatis-Plus）</text>
+    <text x="350" y="848" font-size="12" fill="#A16207">ProjectMapper · DocumentMapper · KnowledgeEntryMapper · ReportMapper · QAMapper · ResearchMapper · SettingMapper · LlmConfigMapper · OrganizationMapper</text>
+  </g>
+
+  <!-- 箭头：业务逻辑 → 数据层（左） -->
+  <line x1="350" y1="884" x2="350" y2="930" stroke="#94A3B8" stroke-width="2.5" marker-end="url(#arrowDown)"/>
+  <text x="370" y="912" font-size="11" fill="#64748B">JDBC</text>
+
+  <!-- 箭头：业务逻辑 → 外部服务（右） -->
+  <line x1="850" y1="884" x2="850" y2="930" stroke="#F87171" stroke-width="2.5" stroke-dasharray="6,3" marker-end="url(#arrowDownRed)"/>
+  <text x="870" y="912" font-size="11" fill="#EF4444">HTTP API</text>
+
+  <!-- ==================== 第五层：数据访问层 ==================== -->
+  <g id="data-layer">
+    <rect x="40" y="938" width="540" height="245" rx="12" fill="url(#gData)" filter="url(#shadow)"/>
+    <text x="65" y="966" font-size="18" font-weight="bold" fill="white">数据访问层</text>
+
+    <!-- SQLite -->
+    <rect x="60" y="985" width="240" height="85" rx="8" fill="rgba(255,255,255,0.2)" stroke="rgba(255,255,255,0.5)" stroke-width="1" filter="url(#shadowLight)"/>
+    <text x="180" y="1012" text-anchor="middle" font-size="15" font-weight="bold" fill="white">SQLite 数据库</text>
+    <text x="180" y="1033" text-anchor="middle" font-size="12" fill="rgba(255,255,255,0.85)">app.db (WAL 模式)</text>
+    <text x="180" y="1053" text-anchor="middle" font-size="11" fill="rgba(255,255,255,0.85)">14 张业务表 · HikariCP</text>
+
+    <!-- 向量索引 -->
+    <rect x="320" y="985" width="240" height="85" rx="8" fill="rgba(255,255,255,0.2)" stroke="rgba(255,255,255,0.5)" stroke-width="1" filter="url(#shadowLight)"/>
+    <text x="440" y="1012" text-anchor="middle" font-size="15" font-weight="bold" fill="white">向量索引</text>
+    <text x="440" y="1033" text-anchor="middle" font-size="12" fill="rgba(255,255,255,0.85)">内存向量搜索（余弦相似度）</text>
+    <text x="440" y="1053" text-anchor="middle" font-size="11" fill="rgba(255,255,255,0.85)">JSON 持久化 · ConcurrentHashMap</text>
+
+    <!-- 文件存储 -->
+    <rect x="150" y="1090" width="280" height="75" rx="8" fill="rgba(255,255,255,0.2)" stroke="rgba(255,255,255,0.5)" stroke-width="1" filter="url(#shadowLight)"/>
+    <text x="290" y="1117" text-anchor="middle" font-size="15" font-weight="bold" fill="white">文件存储</text>
+    <text x="290" y="1138" text-anchor="middle" font-size="12" fill="rgba(255,255,255,0.85)">uploads/ 目录</text>
+    <text x="290" y="1155" text-anchor="middle" font-size="11" fill="rgba(255,255,255,0.85)">PDF · Word · TXT · 图片 · OFD</text>
+  </g>
+
+  <!-- ==================== 第六层：外部集成层 ==================== -->
+  <g id="external-layer">
+    <rect x="600" y="938" width="560" height="245" rx="12" fill="url(#gExternal)" filter="url(#shadow)"/>
+    <text x="625" y="966" font-size="18" font-weight="bold" fill="white">外部集成层</text>
+
+    <!-- SiliconFlow API -->
+    <rect x="620" y="985" width="250" height="85" rx="8" fill="rgba(255,255,255,0.2)" stroke="rgba(255,255,255,0.5)" stroke-width="1" filter="url(#shadowLight)"/>
+    <text x="745" y="1012" text-anchor="middle" font-size="15" font-weight="bold" fill="white">SiliconFlow API</text>
+    <text x="745" y="1033" text-anchor="middle" font-size="12" fill="rgba(255,255,255,0.85)">LLM 大语言模型调用</text>
+    <text x="745" y="1053" text-anchor="middle" font-size="11" fill="rgba(255,255,255,0.85)">问答生成 · 报告撰写 · 分析推理</text>
+
+    <!-- VLM 视觉模型 -->
+    <rect x="890" y="985" width="250" height="85" rx="8" fill="rgba(255,255,255,0.2)" stroke="rgba(255,255,255,0.5)" stroke-width="1" filter="url(#shadowLight)"/>
+    <text x="1015" y="1012" text-anchor="middle" font-size="15" font-weight="bold" fill="white">VLM 视觉模型</text>
+    <text x="1015" y="1033" text-anchor="middle" font-size="12" fill="rgba(255,255,255,0.85)">图片内容描述生成</text>
+    <text x="1015" y="1053" text-anchor="middle" font-size="11" fill="rgba(255,255,255,0.85)">OCR 表格识别与提取</text>
+
+    <!-- Embedding 服务 -->
+    <rect x="710" y="1090" width="280" height="75" rx="8" fill="rgba(255,255,255,0.2)" stroke="rgba(255,255,255,0.5)" stroke-width="1" filter="url(#shadowLight)"/>
+    <text x="850" y="1117" text-anchor="middle" font-size="15" font-weight="bold" fill="white">Embedding 服务</text>
+    <text x="850" y="1138" text-anchor="middle" font-size="12" fill="rgba(255,255,255,0.85)">文本向量化 · 语义编码</text>
+    <text x="850" y="1155" text-anchor="middle" font-size="11" fill="rgba(255,255,255,0.85)">支持多种 Embedding 模型</text>
+  </g>
+
+  <!-- ==================== 底部说明栏 ==================== -->
+  <rect x="40" y="1200" width="1120" height="35" rx="6" fill="#334155" filter="url(#shadow)"/>
+  <text x="600" y="1223" text-anchor="middle" font-size="14" font-weight="bold" fill="white">智能情报分析平台 · 六层架构 · 完全本地化部署 · 数据安全保障</text>
+
+  <!-- 左侧数据流标注 -->
+  <text x="16" y="700" font-size="13" fill="#94A3B8" transform="rotate(-90,16,700)" text-anchor="middle">数据流向 ↓</text>
+
+  <!-- 右侧外部调用标注 -->
+  <text x="1184" y="700" font-size="13" fill="#F87171" transform="rotate(-90,1184,700)" text-anchor="middle">外部 API 调用 ↕</text>
+</svg>
