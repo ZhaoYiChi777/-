@@ -472,6 +472,9 @@ public class KGService {
         // Keep shared-source edges sparse instead of creating a clique per document.
         allEdges.addAll(buildSourceOverlapEdges(entries, nodes, pid));
 
+        List<KGEdge> sourceContainmentEdges = buildAndInsertSourceNodes(entries, nodes, pid);
+        allEdges.addAll(sourceContainmentEdges);
+
         batchInsertEdges(allEdges);
 
         // 3. 调用 Sidecar 计算真实的社区划分 (Louvain / Union-Find)
@@ -529,6 +532,62 @@ public class KGService {
         return nodes;
     }
 
+    private List<KGEdge> buildAndInsertSourceNodes(
+            List<KnowledgeEntry> entries,
+            List<KGNode> nodes,
+            Long projectId) {
+        Map<String, KGNode> sourceNodesByKey = new LinkedHashMap<>();
+        List<KGEdge> edges = new ArrayList<>();
+
+        for (SourceMembership membership : buildSourceMemberships(entries, nodes)) {
+            KGNode sourceNode = sourceNodesByKey.get(membership.sourceKey());
+            if (sourceNode == null) {
+                sourceNode = new KGNode();
+                sourceNode.setLabel(membership.sourceLabel());
+                sourceNode.setNodeType("source");
+                sourceNode.setDescription("Source document: " + membership.sourceLabel());
+                sourceNode.setCommunityId(0);
+                sourceNode.setProjectId(projectId);
+                kgNodeMapper.insert(sourceNode);
+                nodes.add(sourceNode);
+                sourceNodesByKey.put(membership.sourceKey(), sourceNode);
+            }
+
+            KGEdge edge = new KGEdge();
+            edge.setSourceId(sourceNode.getId());
+            edge.setTargetId(membership.entryNodeId());
+            edge.setEdgeType("source_contains");
+            edge.setWeight(1.0);
+            edge.setProjectId(projectId);
+            edges.add(edge);
+        }
+
+        return edges;
+    }
+
+    static List<SourceMembership> buildSourceMemberships(
+            List<KnowledgeEntry> entries,
+            List<KGNode> entryNodes) {
+        List<SourceMembership> memberships = new ArrayList<>();
+        int size = Math.min(entries.size(), entryNodes.size());
+        for (int index = 0; index < size; index++) {
+            KGNode entryNode = entryNodes.get(index);
+            if (entryNode.getId() == null) {
+                continue;
+            }
+
+            SourceIdentity identity = primarySourceIdentity(entries.get(index));
+            if (identity != null) {
+                memberships.add(new SourceMembership(
+                        identity.key(),
+                        identity.label(),
+                        entryNode.getId()
+                ));
+            }
+        }
+        return memberships;
+    }
+
     static List<KGEdge> buildSourceOverlapEdges(
             List<KnowledgeEntry> entries,
             List<KGNode> nodes,
@@ -577,6 +636,19 @@ public class KGService {
         return result;
     }
 
+    private static SourceIdentity primarySourceIdentity(KnowledgeEntry entry) {
+        String sourceName = normalizeSourceName(entry.getSourceName());
+        if (entry.getDocumentId() != null) {
+            String label = !sourceName.isEmpty() ? entry.getSourceName().trim() : "Document " + entry.getDocumentId();
+            return new SourceIdentity("document:" + entry.getDocumentId(), label);
+        }
+
+        if (!sourceName.isEmpty()) {
+            return new SourceIdentity("source:" + sourceName, entry.getSourceName().trim());
+        }
+        return null;
+    }
+
     private static Set<String> sourceIdentityKeys(KnowledgeEntry entry) {
         Set<String> keys = new LinkedHashSet<>();
         if (entry.getDocumentId() != null) {
@@ -613,6 +685,12 @@ public class KGService {
     }
 
     private record SourcePair(Long sourceId, Long targetId) {
+    }
+
+    record SourceIdentity(String key, String label) {
+    }
+
+    record SourceMembership(String sourceKey, String sourceLabel, Long entryNodeId) {
     }
 
     private Set<String> extractWikilinks(String content) {

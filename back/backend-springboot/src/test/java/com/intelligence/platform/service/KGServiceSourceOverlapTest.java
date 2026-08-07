@@ -70,6 +70,35 @@ class KGServiceSourceOverlapTest {
         assertTrue(edges.isEmpty());
     }
 
+    @Test
+    void sourceMembershipsPreferDocumentIdentityAndReuseOneSourceNode() {
+        List<KGService.SourceMembership> memberships = KGService.buildSourceMemberships(
+                List.of(
+                        entry(1L, 100L, " Report-A.pdf "),
+                        entry(2L, 100L, "report-a.pdf"),
+                        entry(3L, null, "Source-B")
+                ),
+                List.of(node(10L), node(11L), node(12L))
+        );
+
+        assertEquals(3, memberships.size());
+        assertEquals("document:100", memberships.get(0).sourceKey());
+        assertEquals("document:100", memberships.get(1).sourceKey());
+        assertEquals("Report-A.pdf", memberships.get(0).sourceLabel());
+        assertEquals("source:source-b", memberships.get(2).sourceKey());
+        assertEquals("Source-B", memberships.get(2).sourceLabel());
+    }
+
+    @Test
+    void sourceMembershipsIgnoreEntriesWithoutSourceIdentity() {
+        List<KGService.SourceMembership> memberships = KGService.buildSourceMemberships(
+                List.of(entry(1L, null, null), entry(2L, null, " ")),
+                List.of(node(10L), node(11L))
+        );
+
+        assertTrue(memberships.isEmpty());
+    }
+
     private static KnowledgeEntry entry(Long id, Long documentId, String sourceName) {
         KnowledgeEntry entry = new KnowledgeEntry();
         entry.setId(id);
