@@ -127,6 +127,41 @@ class KGServiceSourceOverlapTest {
         assertNotEquals(originalHash, KGService.buildEntryHash(entry));
     }
 
+    @Test
+    void incrementalScanClassifiesNewChangedUnchangedAndDeletedEntries() {
+        KnowledgeEntry unchanged = entry(1L, 100L, "Report-A");
+        unchanged.setTitle("Unchanged");
+        unchanged.setContent("Original content");
+
+        KnowledgeEntry changed = entry(2L, 100L, "Report-A");
+        changed.setTitle("Changed");
+        changed.setContent("New content");
+
+        KnowledgeEntry changedOldVersion = entry(2L, 100L, "Report-A");
+        changedOldVersion.setTitle("Changed");
+        changedOldVersion.setContent("Old content");
+
+        KnowledgeEntry newlyAdded = entry(3L, 200L, "Report-B");
+        newlyAdded.setTitle("New");
+        newlyAdded.setContent("Fresh content");
+
+        KGService.IncrementalScanResult result = KGService.analyzeIncrementalChanges(
+                List.of(unchanged, changed, newlyAdded),
+                Map.of(
+                        1L, KGService.buildEntryHash(unchanged),
+                        2L, KGService.buildEntryHash(changedOldVersion),
+                        99L, "deleted-entry-hash"
+                )
+        );
+
+        assertEquals(3, result.totalEntries());
+        assertEquals(1, result.newEntries());
+        assertEquals(1, result.changedEntries());
+        assertEquals(1, result.unchangedEntries());
+        assertEquals(1, result.deletedEntries());
+        assertEquals(3, result.dirtyEntries());
+    }
+
     private static KnowledgeEntry entry(Long id, Long documentId, String sourceName) {
         KnowledgeEntry entry = new KnowledgeEntry();
         entry.setId(id);

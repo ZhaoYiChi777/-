@@ -171,9 +171,34 @@ POST /api/kg/build
 - 新旧数据库自动补表。
 - 为后续 LLM 语义关系抽取预留关系候选表。
 
-未完成：
+新增进展：2026-08-11 已实现伪增量建图扫描。
 
-- 真正的增量建图尚未启用，目前仍是全量重建。
+伪增量当前行为：
+
+- `/api/kg/build` 的 `build_mode` 改为 `pseudo_incremental`。
+- 每次构建前先读取 `kg_entry_build_states` 中已有的 `entry_hash`。
+- 对当前参与建图的 `knowledge_entries` 重新计算 hash。
+- 统计 `newEntries`、`changedEntries`、`unchangedEntries`、`deletedEntries`、`dirtyEntries`。
+- 写入 `kg_build_events`，事件类型为 `incremental_scan`。
+- 本轮仍执行全量图谱重建，保证最终图谱结果与原全量构建兼容。
+- 构建完成后，本轮参与词条状态重新写为 `clean`，并更新 `graph_version`、`node_id`、`last_built_at`。
+
+`incremental_scan` 事件 payload 示例：
+
+```json
+{
+  "totalEntries": 11,
+  "newEntries": 0,
+  "changedEntries": 0,
+  "unchangedEntries": 11,
+  "deletedEntries": 0,
+  "dirtyEntries": 0
+}
+```
+
+仍未完成：
+
+- 真正的局部增量建图尚未启用，目前仍是“先扫描 dirty，再全量重建”。
 - `kg_relation_candidates` 尚未接入 LLM。
 - 前端尚未展示建图任务进度。
 - Rust 尚未接管规则边生成。
@@ -203,6 +228,7 @@ BUILD SUCCESS
 - 无来源词条不会生成来源 membership。
 - `entry_hash` 对同等数据稳定。
 - `entry_hash` 在内容变化后会变化。
+- 伪增量扫描可区分新增、变更、未变、删除词条。
 
 ## 下一步建议
 
@@ -341,4 +367,3 @@ unknown
 - `schema-v2.sql`：新数据库表结构。
 - `back/init-db/01-schema.sql`：Docker 初始化表结构。
 - `kg-compute/src/main.rs`：Rust 图算法 sidecar。
-

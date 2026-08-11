@@ -334,7 +334,7 @@ public class KGService {
             return Map.of("status", "failed", "message", "Project ID is required.");
         }
 
-        KGBuildJob job = createBuildJob(projectId, "full");
+        KGBuildJob job = createBuildJob(projectId, "pseudo_incremental");
         try {
             autoBuildGraph(job);
         List<KGNode> nodes = getProjectNodes();
@@ -428,6 +428,59 @@ public class KGService {
                 kgEntryBuildStateMapper.deleteById(state.getId());
             }
         }
+    }
+
+    private IncrementalScanResult scanIncrementalState(Long projectId, List<KnowledgeEntry> entries) {
+        List<KGEntryBuildState> existingStates = kgEntryBuildStateMapper.selectList(
+                new LambdaQueryWrapper<KGEntryBuildState>().eq(KGEntryBuildState::getProjectId, projectId));
+        Map<Long, String> existingHashes = existingStates.stream()
+                .filter(state -> state.getEntryId() != null)
+                .collect(Collectors.toMap(
+                        KGEntryBuildState::getEntryId,
+                        KGEntryBuildState::getEntryHash,
+                        (left, right) -> left));
+        return analyzeIncrementalChanges(entries, existingHashes);
+    }
+
+    static IncrementalScanResult analyzeIncrementalChanges(
+            List<KnowledgeEntry> entries,
+            Map<Long, String> existingHashes) {
+        int newEntries = 0;
+        int changedEntries = 0;
+        int unchangedEntries = 0;
+        Set<Long> currentEntryIds = new HashSet<>();
+
+        for (KnowledgeEntry entry : entries) {
+            if (entry.getId() == null) {
+                newEntries++;
+                continue;
+            }
+
+            currentEntryIds.add(entry.getId());
+            String existingHash = existingHashes.get(entry.getId());
+            String currentHash = buildEntryHash(entry);
+            if (existingHash == null) {
+                newEntries++;
+            } else if (!existingHash.equals(currentHash)) {
+                changedEntries++;
+            } else {
+                unchangedEntries++;
+            }
+        }
+
+        int deletedEntries = 0;
+        for (Long existingEntryId : existingHashes.keySet()) {
+            if (!currentEntryIds.contains(existingEntryId)) {
+                deletedEntries++;
+            }
+        }
+
+        return new IncrementalScanResult(
+                entries.size(),
+                newEntries,
+                changedEntries,
+                unchangedEntries,
+                deletedEntries);
     }
 
     private void upsertEntryBuildState(KnowledgeEntry entry, KGNode node, KGBuildJob job) {
@@ -634,6 +687,9 @@ public class KGService {
         entryWrapper.ne(KnowledgeEntry::getEntryType, "image").ne(KnowledgeEntry::getEntryType, "table");
         List<KnowledgeEntry> entries = knowledgeEntryMapper.selectList(entryWrapper);
         initializeBuildProgress(job, entries.size());
+        IncrementalScanResult scanResult = scanIncrementalState(pid, entries);
+        recordBuildEvent(job, "incremental_scan", "Entry hashes were compared before graph rebuild.",
+                scanResult.toPayload());
         cleanupStaleEntryBuildStates(pid, entries);
         clearProjectGraph(pid);
 
@@ -932,6 +988,27 @@ public class KGService {
     }
 
     private record SourcePair(Long sourceId, Long targetId) {
+    }
+
+    record IncrementalScanResult(
+            int totalEntries,
+            int newEntries,
+            int changedEntries,
+            int unchangedEntries,
+            int deletedEntries) {
+        int dirtyEntries() {
+            return newEntries + changedEntries + deletedEntries;
+        }
+
+        Map<String, Object> toPayload() {
+            return Map.of(
+                    "totalEntries", totalEntries,
+                    "newEntries", newEntries,
+                    "changedEntries", changedEntries,
+                    "unchangedEntries", unchangedEntries,
+                    "deletedEntries", deletedEntries,
+                    "dirtyEntries", dirtyEntries());
+        }
     }
 
     record SourceIdentity(String key, String label) {
