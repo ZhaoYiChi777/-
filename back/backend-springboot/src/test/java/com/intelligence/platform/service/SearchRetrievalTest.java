@@ -215,14 +215,14 @@ public class SearchRetrievalTest {
         e3.setSourceName("文档A.pdf"); // shares document with e2!
         knowledgeEntryMapper.insert(e3);
 
-        // Execute KG generation
-        Method autoBuildMethod = KGService.class.getDeclaredMethod("autoBuildGraph");
-        autoBuildMethod.setAccessible(true);
-        
-        @SuppressWarnings("unchecked")
-        List<KGNode> nodes = (List<KGNode>) autoBuildMethod.invoke(kgService);
+        // Execute KG generation through the current public build entry.
+        Map<String, Object> buildResult = kgService.buildGraph();
+        assertEquals("succeeded", buildResult.get("status"));
+
+        List<KGNode> nodes = kgNodeMapper.selectList(new LambdaQueryWrapper<KGNode>()
+                .eq(KGNode::getProjectId, TEST_PROJECT_ID));
         System.out.println("生成的图节点数量: " + nodes.size());
-        assertEquals(3, nodes.size());
+        assertTrue(nodes.size() >= 3);
 
         List<KGEdge> edges = kgEdgeMapper.selectList(new LambdaQueryWrapper<KGEdge>()
                 .eq(KGEdge::getProjectId, TEST_PROJECT_ID));
@@ -232,6 +232,7 @@ public class SearchRetrievalTest {
         boolean foundDirectLink = false;
         boolean foundSourceOverlap = false;
         boolean foundKeywordOverlap = false;
+        boolean foundSourceContains = false;
 
         for (KGEdge edge : edges) {
             System.out.println("  边: Type=" + edge.getEdgeType() + ", Weight=" + edge.getWeight() 
@@ -239,10 +240,12 @@ public class SearchRetrievalTest {
             if ("direct_link".equals(edge.getEdgeType())) foundDirectLink = true;
             if ("source_overlap".equals(edge.getEdgeType())) foundSourceOverlap = true;
             if ("keyword_overlap".equals(edge.getEdgeType())) foundKeywordOverlap = true;
+            if ("source_contains".equals(edge.getEdgeType())) foundSourceContains = true;
         }
 
         assertTrue(foundDirectLink, "应生成 direct_link 类型的边 (从 [[智能医疗]] 的 wikilink 解析出来)");
         assertTrue(foundSourceOverlap, "应生成 source_overlap 类型的边 (共享 文档A.pdf 产生)");
         assertTrue(foundKeywordOverlap, "应生成 keyword_overlap 类型的边 (共享 '系统' 关键词产生)");
+        assertTrue(foundSourceContains, "应生成 source_contains 类型的边 (来源节点 membership)");
     }
 }
