@@ -69,7 +69,7 @@
 | `status` | `pending` / `accepted` / `rejected` |
 | `graph_version` | 所属图谱版本 |
 
-当前仅完成表、实体和 Mapper，尚未接入 LLM 抽取逻辑。
+当前已接入 LLM 候选抽取第一阶段。抽取结果默认只进入候选表，不直接污染正式图边。
 
 ### 4. 新增构建事件表
 
@@ -199,10 +199,104 @@ POST /api/kg/build
 仍未完成：
 
 - 真正的局部增量建图尚未启用，目前仍是“先扫描 dirty，再全量重建”。
-- `kg_relation_candidates` 尚未接入 LLM。
+- `kg_relation_candidates` 已接入 LLM 候选抽取第一阶段，但默认关闭，尚未接入自动异步建图链路。
 - 前端尚未展示建图任务进度。
 - Rust 尚未接管规则边生成。
 - 建图质量指标尚未自动计算入库。
+
+## LLM 语义关系抽取第一阶段
+
+日期：2026-08-11
+
+本阶段新增 `SemanticRelationService`，目标是先完成“候选关系抽取 + 幻觉控制 + 阀门 + 保底机制”的闭环。默认不影响现有建图流程。
+
+### 开关与接口
+
+默认关闭：
+
+```properties
+semantic.extract.enabled=false
+semantic.extract.auto-promote=false
+semantic.extract.reject-threshold=0.65
+semantic.extract.auto-accept-threshold=0.82
+semantic.extract.max-dirty-entries-per-job=20
+semantic.extract.max-targets-per-entry=12
+semantic.extract.max-content-chars=3000
+```
+
+手动触发：
+
+```http
+POST /api/kg/semantic-relations/extract?includeClean=false&limit=20
+```
+
+候选查询：
+
+```http
+GET /api/kg/semantic-relations/candidates?status=pending&page=1&pageSize=50
+```
+
+### 防幻觉与阀门
+
+第一版不让 LLM 直接写入正式图边。流程为：
+
+```text
+dirty/new 词条
+  -> 选择同文档/同来源/关键词重合的候选 target
+  -> LLM 只能在候选 target 中抽关系
+  -> 解析 JSON
+  -> 校验 sourceTitle 必须等于当前 source 词条
+  -> 校验 targetTitle 必须映射到已有词条
+  -> 校验 relationType 必须在白名单内
+  -> 校验 evidence 必须出现在 source 或 target 原文中
+  -> 按 confidence 和关系类型分流 accepted/pending/rejected
+  -> 幂等写入 kg_relation_candidates，重复候选更新原记录
+```
+
+状态阀门：
+
+```text
+evidence 缺失或原文不命中 -> rejected
+source/target 不合法 -> rejected
+relationType 不在白名单 -> rejected
+confidence < 0.65 -> rejected
+confidence >= 0.82 且类型属于高稳白名单 -> accepted
+其他通过基础校验的关系 -> pending
+```
+
+高稳自动 accepted 类型：
+
+```text
+defines
+belongs_to
+references
+synonym_of
+```
+
+复杂类型先进入 pending：
+
+```text
+causes
+parent_of
+child_of
+applies_when
+depends_on
+conflicts_with
+```
+
+自动晋升正式图边默认关闭。只有显式设置：
+
+```properties
+semantic.extract.auto-promote=true
+```
+
+accepted 候选才会转成 `kg_edges`，边类型为：
+
+```text
+semantic_{relationType}
+```
+
+候选写入具备幂等保护：同一项目、同一 source/target、同一 relationType、同一 evidence、同一 extractor 的候选会复用已有记录，并刷新 `confidence`、`reason`、`status` 和 `graph_version`，避免重复触发抽取导致审核列表膨胀。
 
 ## 验证记录
 
@@ -229,6 +323,9 @@ BUILD SUCCESS
 - `entry_hash` 对同等数据稳定。
 - `entry_hash` 在内容变化后会变化。
 - 伪增量扫描可区分新增、变更、未变、删除词条。
+- LLM 响应 JSON fenced code block 可解析。
+- evidence 必须命中原文，否则高置信关系也会 rejected。
+- 高置信高稳关系可 accepted，复杂关系先 pending。
 
 ## 下一步建议
 
